@@ -1,0 +1,70 @@
+LOW = 0
+NORMAL = 1
+HIGH = 2
+
+LETTUCE_FIRST_WEEK = {"number of waterings": 1,
+                      "watering time": 300,
+                      "lighting": [0, 0],
+                      "temperature": [22, 26],
+                      "humidity": [60, 80],
+                      "co2": [0, 1000]
+                      }
+
+LETTUCE_SECOND_WEEK = {"number of waterings": 2,
+                       "watering time": 300,
+                       "lighting": [6, 22],
+                       "temperature": [20, 24],
+                       "humidity": [60, 80],
+                       "co2": [300, 1000]
+                       }
+
+LETTUCE_THIRD_WEEK = {"number of waterings": 4,
+                      "watering time": 300,
+                      "lighting": [6, 22],
+                      "temperature": [20, 24],
+                      "humidity": [60, 80],
+                      "co2": [500, 1000]
+                      }
+
+LETTUCE_LAST_WEEK = {"number of waterings": 4,
+                     "watering time": 300,
+                     "lighting": [6, 22],
+                     "temperature": [20, 24],
+                     "humidity": [60, 80],
+                     "co2": [800, 1000]
+                     }
+
+BASIL_FIRST_WEEK = {"number of waterings": 1,
+                    "watering time": 300,
+                    "lighting": [0, 0],
+                    "temperature": [26, 30],
+                    "humidity": [70, 90],
+                    "co2": [0, 1000]
+                    }
+
+BASIL_SECOND_WEEK = {"number of waterings": 2,
+                     "watering time": 300,
+                     "lighting": [6, 22],
+                     "temperature": [22, 28],
+                     "humidity": [70, 90],
+                     "co2": [300, 1100]
+                     }
+
+BASIL_THIRD_WEEK = {"number of waterings": 4,
+                    "watering time": 300,
+                    "lighting": [6, 22],
+                    "temperature": [22, 28],
+                    "humidity": [70, 90],
+                    "co2": [500, 1100]
+                    }
+
+BASIL_LAST_WEEK = {"number of waterings": 4,
+                   "watering time": 300,
+                   "lighting": [6, 22],
+                   "temperature": [22, 28],
+                   "humidity": [70, 90],
+                   "co2": [700, 1100]
+                   }
+
+BASIL = [BASIL_FIRST_WEEK, BASIL_SECOND_WEEK, BASIL_THIRD_WEEK, BASIL_LAST_WEEK]
+LETTUCE = [LETTUCE_FIRST_WEEK, LETTUCE_SECOND_WEEK, LETTUCE_THIRD_WEEK, LETTUCE_LAST_WEEK]
