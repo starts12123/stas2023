@@ -1,0 +1,50 @@
+import RPi.GPIO as GPIO
+from board import D7
+import Adafruit_DHT-1.4.0 as dht 
+import mh_z19
+from constants import *
+
+
+class Sensors:  # класс датчиков
+
+    water_level = LOW
+    temperature = 0
+    humidity = 0
+
+    dht_device = Adafruit_DHT-1.4.0.DHT22(board.D23, use_pulseio=False)  # инициализация датчика DHT21
+
+    def __init__(self):  # выполняется при создании объекта
+        GPIO.setup(19, GPIO.IN)  # нижний датчик уровня
+        GPIO.setup(16, GPIO.IN)  # верхний датчик уровня
+        GPIO.setup(7, GPIO.IN)  # датчик температуры
+        #GPIO.setup(18, GPIO.IN)  # датчик CO2
+
+    def get_water_level():  # функция получения уровня воды
+        lower_sensor = GPIO.input(19)  # получение значения с нижнего датчика уровня
+        higher_sensor = GPIO.input(16)  # получение значения с верхнего датчика уровня
+
+        if lower_sensor == 0:
+            return LOW
+        elif lower_sensor + higher_sensor == 1:
+            return NORMAL
+        else:
+            return HIGH
+        # возвращает значение уровня воды в виде константы LOW, NORMAL или HIGH
+
+    def get_dht_values(self):  # функция получения температуры и влажности
+        try:
+            temperature = self.dht_device.temperature  # получение значения температуры
+            humidity = self.dht_device.humidity  # получение значения влажности
+
+            return temperature, humidity
+            # возвращает словарь со значениями температуры и влажности
+
+        except RuntimeError as error:  # обработка ошибки переполнения буфера данных датчика
+            print(error.args[0])
+
+        except Exception as error:
+            print(error.args[0])
+
+    #def get_co2_level():  # функция получения уровня СО2
+        #return mh_z19.read_from_pwm()["co2"]
+        # возвращает уровень СО2 в виде числа
