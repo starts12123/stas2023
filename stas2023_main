@@ -1,0 +1,23 @@
+from datetime import datetime
+#import RPi.GPIO as GPIO
+from board import D7
+import adafruit_dht as dht
+import mh_z19
+
+from sensors import Sensors
+from raspberry.device import Device
+from raspberry.constants import *
+
+sensors = Sensors()
+device = Device()
+
+try:
+    device.set_mode()
+    while True:
+        device.watering()
+        device.lighting()
+
+        device.check_device_uptime()
+        device.show_values()
+except KeyboardInterrupt:
+    device.stop()
