@@ -1,0 +1,170 @@
+import RPi.GPIO as GPIO
+from datetime import datetime
+from constants import *
+
+class Device:
+    settings = {"number of waterings": 4,
+                "watering time": 300,
+                "lighting": [6, 22],
+                "temperature": [20, 24],
+                "humidity": [40, 80],
+                "co2": [350, 700]
+                }
+    # настройки установки
+
+    start_time: datetime
+    settings_name: list
+
+    pump_on = False  # включена ли помпа
+    light_on = False  # включен ли свет
+
+    temperature_level = NORMAL  # уровень температуры
+    humidity_level = NORMAL  # уровень влажности
+    co2_level = NORMAL  # уровень со2
+    water_level = NORMAL  # уровень воды
+
+    last_watering_time = 0  # время последнего полива
+
+    def __init__(self):
+        self.start_time = datetime.now()  # время запуска установки
+
+        GPIO.setup(37, GPIO.OUT)
+        GPIO.setup(38, GPIO.OUT)
+        GPIO.output(37, 0)
+        GPIO.output(38, 0)
+
+        # инициализация реле
+
+    def stop(self):  # функция остановки установки
+        GPIO.setup(37, GPIO.OUT)
+        GPIO.setup(38, GPIO.OUT)
+        GPIO.output(37, 0)
+        GPIO.output(38, 0)
+
+    def level_conversion(self, value):  # конвертация уровня в язык понятный человеку
+        value_conversion: str
+
+        if value == HIGH:
+            value_conversion = "высокий"
+        elif value == LOW:
+            value_conversion = "низкий"
+        else:
+            value_conversion = "в норме"
+
+        return value_conversion
+
+    def check_temperature_and_humidity(self, temperature_func):
+        # функция определения уровня температуры и влажности
+
+        temperature, humidity = temperature_func()
+
+        if self.settings["temperature"[0]] <= temperature < self.settings["temperature"[1]]:
+            self.temperature_level = NORMAL
+        elif temperature >= self.settings["temperature"[1]]:
+            self.temperature_level = HIGH
+        else:
+            self.temperature_level = LOW
+
+        if self.settings["humidity"[0]] <= humidity < self.settings["humidity"[1]]:
+            self.humidity_level = NORMAL
+        elif humidity >= self.settings["humidity"[1]]:
+            self.humidity_level = HIGH
+        else:
+            self.humidity_level = LOW
+
+        # сравнивает значение со значениями в настройках и на основе этого
+        # делает вывод об уровне температуры и влажности (низкий, высокий, в норме)
+
+    def check_co2(self, co2_func):  # функция определения уровня СО2
+        co2 = co2_func()  # получение значения из функции
+
+        if self.settings["co2"[0]] <= co2 < self.settings["co2"[1]]:
+            self.co2_level = NORMAL
+        elif co2 >= self.settings["co2"[1]]:
+            self.co2_level = HIGH
+        else:
+            self.co2_level = LOW
+
+        # сравнивает значение со значениями в настройках и на основе этого
+        # делает вывод об уровне СО2 (низкий, высокий, в норме)
+
+    def time_difference(self, time):
+        return (datetime.now() - time).seconds
+    # вычисление разницы во времени в секундах
+
+    def may_watering(self):
+        if 86400 / self.settings["number of waterings"] >= self.time_difference(self.last_watering_time):
+            return True
+
+    def watering(self):  # функция полива
+        if (self.humidity_level < NORMAL <= self.water_level and
+                self.may_watering() and
+                not self.pump_on):
+
+            GPIO.output(37, 1)
+            # включение помпы, если уровень влажности и воды в норме,
+            # если время полива ещё не закончилось, а также, если помпа не включена
+
+            self.pump_on = True
+            self.last_watering_time = datetime.now()  # фиксация времени полива
+
+        else:
+            GPIO.output(37, 0)  # выключение насоса
+
+            self.pump_on = True
+
+    def lighting(self):  # функция включения света
+        if self.settings["lighting"][0] <= datetime.hour < self.settings["lighting"][1]:
+            GPIO.output(38, 1)  # включение света
+        else:
+            GPIO.output(38, 0)  # выключение света
+
+    def auto_configuration(self, settings_list: list):  # функция переноса настроек из словаря
+        self.settings = settings_list
+
+    def manual_configuration(self): # ручная настрока установки
+        self.settings["number of waterings"] = int(input("Количество поливов: "))
+        self.settings["watering time"] = int(input("Время полива(сек): "))
+        self.settings["lighting"] = int(input("Время включения и выключения(ч, через пробел): "))
+        self.settings["temperature"] = int(input("Минимальная и максимальная температура(*С, через пробел): "))
+        self.settings["humidity"] = int(input("Минимальная и максимальная влажность(%, через пробел): "))
+        self.settings["co2"] = int(input("Минимальный и максимальный уровень СО2(ppm, через пробел): "))
+
+    def set_mode(self): # выбор режима работы установки
+        mode = int(input("Выберите режим:\n 1. Ручной\n 2. Автоматический"))
+        if mode == 1:
+            self.manual_configuration()
+        else:
+            plant = int(input("Выберите растение:\n 1. Салат\n 2. Базилик"))
+            if plant == 1:
+                self.auto_configuration(LETTUCE[0])
+                self.settings_name(LETTUCE)
+            else:
+                self.auto_configuration(BASIL[0])
+                self.settings_name(BASIL)
+
+    def check_device_uptime(self): # меняет режим работы установки, в зависимости от недели вегетации
+        working_days = (datetime.now() - self.start_time).days
+
+        if working_days == 7:
+            self.auto_configuration(self.settings_name[1])
+        elif working_days == 14:
+            self.auto_configuration(self.settings_name[2])
+        elif working_days == 21:
+            self.auto_configuration(self.settings_name[3])
+
+    def show_values(self):  # вывод значений с датчиков в консоль
+        if self.pump_on:
+            print("Насос включен")
+        else:
+            print("Насос выключен")
+
+        if self.light_on:
+            print("Насос включен")
+        else:
+            print("Насос выключен")
+
+        print("Уровень воды: ", self.level_conversion(self.water_level))
+        print("Уровень температуры: ", self.level_conversion(self.temperature_level))
+        print("Уровень влажности: ", self.level_conversion(self.humidity_level))
+        print("Уровень СО2: ", self.level_conversion(self.co2_level))
